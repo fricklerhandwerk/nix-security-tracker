@@ -51,8 +51,12 @@ in
       pytest-django
       pytest-playwright
       playwright
+      pillow
+      imagehash
     ];
     nativeBuildInputs = [ final.playwright-driver.browsers ];
+    makeWrapperArgs = [
+    ];
     postInstall = ''
       mkdir -p $out/bin
       cp -v ${src}/manage.py $out/bin/manage.py
