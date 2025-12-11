@@ -47,8 +47,12 @@ in
       sentry-sdk
       django-pghistory
       django-pgtrigger
+      pytest
+      pytest-django
+      pytest-playwright
+      playwright
     ];
-
+    nativeBuildInputs = [ final.playwright-driver.browsers ];
     postInstall = ''
       mkdir -p $out/bin
       cp -v ${src}/manage.py $out/bin/manage.py

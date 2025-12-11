@@ -5,3 +5,6 @@ version = "0.0.1"
 [tool.setuptools]
 packages = { find = {} }
 include-package-data = true
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "project.settings"

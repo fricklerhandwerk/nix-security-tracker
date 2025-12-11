@@ -60,6 +60,8 @@ rec {
     in
     pkgs.mkShellNoCC {
       env = {
+        PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";
+        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
         REDIS_SOCKET_URL = "unix:///run/redis/redis.sock";
         DATABASE_URL = "postgres://nix-security-tracker@/nix-security-tracker";
         # psql doesn't take DATABASE_URL
