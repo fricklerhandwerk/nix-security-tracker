@@ -60,6 +60,7 @@ rec {
     in
     pkgs.mkShellNoCC {
       env = {
+        # TODO: somehow this also needs to work in the VM test
         PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";
         PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD = "1";
         REDIS_SOCKET_URL = "unix:///run/redis/redis.sock";

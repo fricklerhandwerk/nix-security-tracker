@@ -163,6 +163,23 @@ def test_setup(db, client):
 def test_visual(live_server, page, visual_compare, test_setup):
     page.goto(live_server.url)
     visual_compare(page.screenshot(full_page=True), "homepage")
+
     page.goto(live_server.url + reverse("webview:suggestions_view"))
     visual_compare(page.screenshot(full_page=True), "suggestions")
+
+    suggestion = test_setup["suggestion"]
+    suggestion.status = CVEDerivationClusterProposal.Status.REJECTED
+    suggestion.save()
+    cache_new_suggestions(suggestion)
+
+    page.goto(live_server.url + reverse("webview:dismissed_view"))
+    visual_compare(page.screenshot(full_page=True), "dismissed")
+
+    suggestion = test_setup["suggestion"]
+    suggestion.status = CVEDerivationClusterProposal.Status.ACCEPTED
+    suggestion.save()
+    cache_new_suggestions(suggestion)
+
+    page.goto(live_server.url + reverse("webview:drafts_view"))
+    visual_compare(page.screenshot(full_page=True), "drafts")
 

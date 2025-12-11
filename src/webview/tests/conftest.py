@@ -1,5 +1,4 @@
-from PIL import Image
-import imagehash
+from PIL import Image, ImageChops
 import io
 from pathlib import Path
 import pytest
@@ -26,7 +25,7 @@ def visual_compare(request):
             return
 
         baseline = Image.open(baseline_path)
-        diff = imagehash.average_hash(current) - imagehash.average_hash(baseline)
-        assert diff < 1, f"Visual diff: {diff}"
+        diff = ImageChops.difference(current, baseline)
+        assert diff.getbbox() is None, f"Screenshot '{name}' differs from baseline"
 
     return compare
