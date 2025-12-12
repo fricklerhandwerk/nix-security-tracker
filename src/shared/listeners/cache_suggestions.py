@@ -8,6 +8,8 @@ from typing import Any
 import pgpubsub
 from django.db.models import Prefetch
 
+from django.conf import settings
+
 from shared.channels import CVEDerivationClusterProposalCacheChannel
 from shared.models import NixDerivation, NixMaintainer
 from shared.models.cached import CachedSuggestions
@@ -61,7 +63,7 @@ def cache_new_suggestions(suggestion: CVEDerivationClusterProposal) -> None:
         return
 
     # This is not a suggestion we want to show.
-    if suggestion.derivations.count() > 1_000:
+    if suggestion.derivations.count() > settings.MAX_MATCHES:
         return
 
     relevant_data = (
