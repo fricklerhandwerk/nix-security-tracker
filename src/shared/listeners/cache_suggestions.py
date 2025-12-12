@@ -60,6 +60,10 @@ def cache_new_suggestions(suggestion: CVEDerivationClusterProposal) -> None:
     ).exists():
         return
 
+    # This is not a suggestion we want to show.
+    if suggestion.derivations.count() > 1_000:
+        return
+
     relevant_data = (
         suggestion.cve.container.prefetch_related("affected", "metrics", "descriptions")
         .values(
@@ -77,9 +81,6 @@ def cache_new_suggestions(suggestion: CVEDerivationClusterProposal) -> None:
         return
     relevant_piece = relevant_piece[0]
 
-    # This is not a suggestion we want to show.
-    if suggestion.derivations.count() > 1_000:
-        return
 
     affected_products = dict()
     all_versions = list()
