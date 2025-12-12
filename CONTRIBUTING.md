@@ -49,7 +49,7 @@ We use these tagged comments inspired by and loosely following [PEP 450](https:/
   # FIXME(@fricklerhandwerk): Remove the above note when the last instance of `NOTE` is gone.
   ```
 
-Always add yourself as author in parentheses -- `(@<author>)` -- so it's clear who had an opinion and may still have one during review.
+Always add your GitHub handle in parentheses -- `(@<author>)` -- so it's clear who had an opinion and may still have one during review.
 Code may move around, so [`git blame`](https://git-scm.com/docs/git-blame) won't be useful to track comment authorship.
 
 ## Setting up credentials
