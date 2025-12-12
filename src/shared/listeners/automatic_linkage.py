@@ -2,6 +2,8 @@ import logging
 
 import pgpubsub
 
+from django.conf import settings
+
 from shared.channels import ContainerChannel
 from shared.models.cve import Container
 from shared.models.linkage import CVEDerivationClusterProposal, ProvenanceFlags
@@ -53,6 +55,16 @@ def build_new_links(container: Container) -> bool:
 
     drvs = produce_linkage_candidates(container)
     if not drvs:
+        return False
+
+    if length(drvs) > settings.MAX_MATCHES:
+        # FIXME: [tag:max-drv-matches] Previously we only filtered these out during caching.
+        # So there may still be some in the database; clean that out.
+        logger.warning(
+            "More than '%d' derivations matching '%s', ignoring",
+            settings.MAX_MATCHES,
+            container.cve,
+        )
         return False
 
     proposal = CVEDerivationClusterProposal.objects.create(cve=container.cve)
