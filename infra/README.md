@@ -28,6 +28,13 @@ If in the future we need to create more VMs and do it in a declarative way, we c
 Deployments happen automatically via GitHub Actions. Whenever a merge happens on the `main` branch, a GitHub Action runs that updates the staging deployment of the tracker (tracker-staging.security.nixos.org).
 Similarly, merges on the `production` branch get automatically applied to tracker.security.nixos.org.
 
+## Updating dependencies
+
+Nixpkgs is [updated weekly](../.github/workflows/bump.yaml), tracking a stable release channel.
+We chose this to avoid updates surprisingly requiring reboots, which we'd notice only on failing deployment.
+
+Maintainers should migrate to unstable when the [release preparations are announced on Discourse](https://discourse.nixos.org/search?q=release%20cycle%20%23announcements%20in%3Atitle%20order%3Alatest_topic), reboot, and later switch back to stable once it's released.
+
 ## Secrets
 
 Secrets are managed using [Agenix](https://github.com/ryantm/agenix).
