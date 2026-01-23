@@ -1,11 +1,15 @@
+from collections.abc import Callable
 from datetime import timedelta
 from unittest.mock import patch
 
+import pytest
 from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
+from playwright.sync_api import Page, expect
+from pytest_django.live_server_helper import LiveServer
 
 from shared.listeners.cache_suggestions import cache_new_suggestions
 from shared.models.cve import (
@@ -29,6 +33,53 @@ from shared.models.nix_evaluation import (
     NixEvaluation,
     NixMaintainer,
 )
+
+
+@pytest.mark.parametrize(
+    "status, remove_package, endpoint",
+    [
+        (CVEDerivationClusterProposal.Status.PENDING, True, "suggestions"),
+        (CVEDerivationClusterProposal.Status.REJECTED, False, "dismissed"),
+        (CVEDerivationClusterProposal.Status.ACCEPTED, True, "drafts"),
+    ],
+)
+def test_package_removal(
+    live_server: LiveServer,
+    as_staff: Page,
+    make_suggestion: Callable[..., CVEDerivationClusterProposal],
+    make_drv: Callable[..., NixDerivation],
+    remove_package: bool,
+    status: CVEDerivationClusterProposal.Status,
+    endpoint: str,
+    no_js: bool,
+) -> None:
+    """Helper method for testing package removal with different statuses"""
+    drv1 = make_drv(pname="package1")
+    drv2 = make_drv(pname="package2")
+    suggestion = make_suggestion(
+        status=status,
+        drvs={
+            drv1: ProvenanceFlags.PACKAGE_NAME_MATCH,
+            drv2: ProvenanceFlags.PACKAGE_NAME_MATCH,
+        },
+    )
+    cache_new_suggestions(suggestion)
+
+    as_staff.goto(live_server.url + reverse(f"webview:{endpoint}_view"))
+    if not remove_package:
+        expect(as_staff.locator('input[value="package1"]')).to_have_count(0)
+        return
+    else:
+        as_staff.locator('input[value="package1"]').click()
+        if no_js:
+            purge = as_staff.get_by_role("button", name="Purge deleted packages")
+            purge.click()
+        else:
+            as_staff.reload()
+
+    expect(
+        as_staff.get_by_text("Matching in Nixpkgs").get_by_text("package1")
+    ).to_have_count(0)
 
 
 class PackageRemovalTests(TestCase):
@@ -151,70 +202,11 @@ class PackageRemovalTests(TestCase):
         cache_new_suggestions(self.suggestion)
         self.suggestion.refresh_from_db()
 
-    def _test_package_removal(
-        self,
-        status: CVEDerivationClusterProposal.Status,
-        url_name: str,
-        should_remove_package: bool,
-    ) -> None:
-        """Helper method for testing package removal with different statuses"""
-        # Set suggestion status
-        self.suggestion.status = status
-        self.suggestion.save()
-
-        # Make request to keep only derivation1 (remove derivation2)
-        url = reverse(url_name)
-        response = self.client.post(
-            url,
-            {
-                "suggestion_id": self.suggestion.pk,
-                "attribute": ["package1"],
-            },
-        )
-        self.assertEqual(response.status_code, 200)
-
-        # Verify the result based on expected behavior
-        self.suggestion.refresh_from_db()
-        updated_cached_packages = self.suggestion.cached.payload["packages"]
-
-        if should_remove_package:
-            # Package should be removed
-            self.assertIn("package1", updated_cached_packages)
-            self.assertNotIn("package2", updated_cached_packages)
-        else:
-            # Package should NOT be removed (rejected suggestions are not editable)
-            self.assertIn("package1", updated_cached_packages)
-            self.assertIn("package2", updated_cached_packages)
-
     def test_packages_are_initially_present(self) -> None:
         # Verify both packages are in the cached payload
         cached_packages = self.suggestion.cached.payload["packages"]
         self.assertIn("package1", cached_packages)
         self.assertIn("package2", cached_packages)
-
-    def test_remove_package_from_accepted_suggestion(self) -> None:
-        """Test removing a package from a suggestion in accepted status (editable draft issue)"""
-        self._test_package_removal(
-            CVEDerivationClusterProposal.Status.ACCEPTED,
-            "webview:drafts_view",
-            should_remove_package=True,
-        )
-
-    def test_remove_package_from_pending_suggestion(self) -> None:
-        """Test removing a package from a suggestion in pending status (editable)"""
-        self._test_package_removal(
-            CVEDerivationClusterProposal.Status.PENDING,
-            "webview:suggestions_view",
-            should_remove_package=True,
-        )
-
-    def test_cannot_remove_package_from_rejected_suggestion(self) -> None:
-        """Test that packages cannot be removed from dismissed suggestions (not editable)"""
-        self._test_package_removal(
-            CVEDerivationClusterProposal.Status.REJECTED,
-            "webview:dismissed_view",
-            should_remove_package=False,
-        )
 
     def test_restore_package(self) -> None:
         """Test removing a package from a suggestion in pending status (editable)"""
