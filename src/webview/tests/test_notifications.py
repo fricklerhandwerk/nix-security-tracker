@@ -32,6 +32,16 @@ def test_mark_notification_read_unread(
     notification = as_staff.locator(f"#notification-{db_notification.pk}")
     expect(notification).to_be_visible()
 
+    suggestion_link = notification.get_by_role("link", name="View")
+    assert db_notification.suggestion
+    link = re.compile(
+        reverse(
+            "webview:suggestion:detail",
+            kwargs={"suggestion_id": db_notification.suggestion.pk},
+        )
+    )
+    expect(suggestion_link).to_have_attribute("href", link)
+
     mark_read = notification.get_by_role("button", name="Mark read")
     mark_read.click()
     expect(badge).to_have_text("0")

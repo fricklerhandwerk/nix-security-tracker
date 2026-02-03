@@ -11,6 +11,7 @@ from shared.models import Container, NixDerivationMeta, NixpkgsEvent, NixpkgsIss
 from shared.models.linkage import (
     DerivationClusterProposalLink,
 )
+from webview.models import Notification, SuggestionNotification
 
 
 class ReadOnlyMixin:
@@ -142,3 +143,5 @@ class NixpkgsIssueAdmin(AutocompleteMixin, admin.ModelAdmin):
 
 
 admin.site.register(DerivationClusterProposalLink)
+admin.site.register(Notification)
+admin.site.register(SuggestionNotification)

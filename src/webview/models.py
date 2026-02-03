@@ -5,22 +5,27 @@ from django.contrib.postgres import fields
 from django.db import models, transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from model_utils.managers import InheritanceManager
+
+from shared.models import TimeStampMixin
+from shared.models.linkage import CVEDerivationClusterProposal
 
 
-class Notification(models.Model):
+class Notification(TimeStampMixin):
     """
     Notification to appear in the notification center of a user.
     """
 
+    objects = InheritanceManager()
+
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="notifications"
     )
-    # FIXME(@fricklerhandwerk): I find it questionable whether notifications should be character blobs.
+    is_read = models.BooleanField(default=False)
+    # FIXME(@fricklerhandwerk): [tag:suggestion-subclasses] Migrate these fields to a separate `TextSuggestion` subclass.
+    # This requires generating suggestion status change notification text in the view. [ref:suggestion-notification-text]
     title = models.CharField(max_length=255)
     message = models.TextField()
-    is_read = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     def toggle_read(self) -> int:
         """
@@ -48,6 +53,20 @@ class Notification(models.Model):
 
         return profile.unread_notifications_count
 
+    # FIXME(@fricklerhandwerk): Remove this compatibility kludge when we have polymorphic templates. [ref:suggestion-subclasses]
+    @property
+    def notification(self) -> "SuggestionNotification | None":
+        return None
+
+
+class SuggestionNotification(Notification):
+    suggestion = models.ForeignKey(
+        CVEDerivationClusterProposal,
+        # XXX(@fricklerhandwerk): It's unlikely we'll delete suggestions any time soon.
+        # But when we do, we don't want to mess up the notification counter. [ref:count-notifications]
+        on_delete=models.PROTECT,
+    )
+
 
 class Profile(models.Model):
     """
@@ -69,11 +88,20 @@ class Profile(models.Model):
     )
 
     def create_notification(
-        self, title: str, message: str, is_read: bool = False
-    ) -> Notification:
+        self,
+        title: str,
+        message: str,
+        suggestion: CVEDerivationClusterProposal,
+        is_read: bool = False,
+    ) -> SuggestionNotification:
         """Create a notification and update the user's unread counter."""
-        notification = Notification.objects.create(
-            user=self.user, title=title, message=message, is_read=is_read
+        notification = SuggestionNotification.objects.create(
+            user=self.user,
+            is_read=is_read,
+            # FIXME(@fricklerhandwer): [ref:suggestion-notification-text] Decouple text notifications from suggestion status change notifications
+            title=title,
+            message=message,
+            suggestion=suggestion,
         )
 
         # Update counter if notification is unread

@@ -17,8 +17,11 @@ class NotificationCenterView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self) -> QuerySet[Notification]:
-        return Notification.objects.filter(user=self.request.user).order_by(
-            "-created_at"
+        return (
+            Notification.objects.filter(user=self.request.user)
+            .select_related("suggestionnotification__suggestion")
+            .order_by("-created_at")
+            .select_subclasses()
         )
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
@@ -36,7 +39,7 @@ class ToggleNotificationReadView(LoginRequiredMixin, TemplateView):
 
     def post(self, request: HttpRequest, notification_id: int) -> HttpResponse:
         notification = get_object_or_404(
-            Notification.objects.select_related("user__profile"),
+            Notification.objects.select_related("user__profile").select_subclasses(),
             id=notification_id,
             user=request.user,
         )
