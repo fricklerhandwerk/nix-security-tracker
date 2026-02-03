@@ -22,10 +22,6 @@ class Notification(TimeStampMixin):
         User, on_delete=models.CASCADE, related_name="notifications"
     )
     is_read = models.BooleanField(default=False)
-    # FIXME(@fricklerhandwerk): [tag:suggestion-subclasses] Migrate these fields to a separate `TextSuggestion` subclass.
-    # This requires generating suggestion status change notification text in the view. [ref:suggestion-notification-text]
-    title = models.CharField(max_length=255)
-    message = models.TextField()
 
     def toggle_read(self) -> int:
         """
@@ -53,10 +49,11 @@ class Notification(TimeStampMixin):
 
         return profile.unread_notifications_count
 
-    # FIXME(@fricklerhandwerk): Remove this compatibility kludge when we have polymorphic templates. [ref:suggestion-subclasses]
-    @property
-    def notification(self) -> "SuggestionNotification | None":
-        return None
+
+class TextNotification(Notification):
+    # FIXME(@fricklerhandwerk): Generate suggestion status change notification text in the view. [ref:suggestion-notification-text]
+    title = models.CharField(max_length=255, blank=False)
+    message = models.TextField()
 
 
 class SuggestionNotification(Notification):
@@ -66,6 +63,17 @@ class SuggestionNotification(Notification):
         # But when we do, we don't want to mess up the notification counter. [ref:count-notifications]
         on_delete=models.PROTECT,
     )
+
+    @property
+    def title(self) -> str:
+        # XXX(@fricklerhandwerk): This is hard to be more precise about without tracking or carefully extracting more data.
+        # Ideally we'd always say the matching was automatic, and also why it happened.
+        # For example, show the package that corresponds to subscribed attribute name or auto-subscription by maintainer.
+        # But a suggestion can be edited after the match was made and the notification created.
+        # We should then also show (maybe in the equivalent of the text message) what state that match is now in (e.g. ingored, ideally for which reason).
+        # Maybe even garbage-collect the notification if it got obsolete and wasn't yet served or otherwise exposed to the user.
+        # FIXME(@fricklerhandwerk): User-facing text should be generated from structured data in templates.
+        return f"{self.suggestion.cve.cve_id} was automatically matched to packages you subscribed to"
 
 
 class Profile(models.Model):
@@ -88,26 +96,16 @@ class Profile(models.Model):
     )
 
     def create_notification(
-        self,
-        title: str,
-        message: str,
-        suggestion: CVEDerivationClusterProposal,
-        is_read: bool = False,
+        self, suggestion: CVEDerivationClusterProposal
     ) -> SuggestionNotification:
         """Create a notification and update the user's unread counter."""
         notification = SuggestionNotification.objects.create(
             user=self.user,
-            is_read=is_read,
-            # FIXME(@fricklerhandwer): [ref:suggestion-notification-text] Decouple text notifications from suggestion status change notifications
-            title=title,
-            message=message,
             suggestion=suggestion,
         )
 
-        # Update counter if notification is unread
-        if not is_read:
-            self.unread_notifications_count += 1
-            self.save(update_fields=["unread_notifications_count"])
+        self.unread_notifications_count += 1
+        self.save(update_fields=["unread_notifications_count"])
 
         return notification
 

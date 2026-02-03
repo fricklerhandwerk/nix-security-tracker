@@ -7,8 +7,9 @@
     <h3 class="heading">{{ notification.title }}</h3>
     <time datetime="{{ notification.created_at|date }}" class="notification-date">{{ notification.created_at|date:"M d, Y H:i" }}</time>
   </header>
-  {{ notification.message|linebreaks }}
-  {% if notification.suggestion %}
+  {% if notification.message %}
+    {{ notification.message|linebreaks }}
+  {% elif notification.suggestion %}
     {% include "../../suggestions/components/suggestion_stub.html" with data=notification %}
   {% endif %}
   <form method="post" action="{% url 'webview:notifications:toggle_read' notification.id %}" class="row-reverse" hx-indicator="find button">
