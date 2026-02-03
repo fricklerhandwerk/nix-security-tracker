@@ -4,7 +4,7 @@ from typing import Any
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 
-from webview.models import Notification
+from webview.models import Profile
 
 
 class Command(BaseCommand):
@@ -41,8 +41,7 @@ class Command(BaseCommand):
             raise CommandError(f"User '{username}' does not exist")
 
         # Use manager method to create notification and update counter
-        notification = Notification.objects.create_for_user(
-            user=user,
+        notification = Profile.objects.get(user=user).create_notification(
             title=title,
             message=message,
         )

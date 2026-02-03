@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 
 from shared.channels import CVEDerivationClusterProposalNotificationChannel
 from shared.models.linkage import CVEDerivationClusterProposal
-from webview.models import Notification
+from webview.models import Notification, Profile
 
 logger = logging.getLogger(__name__)
 
@@ -96,8 +96,7 @@ def create_package_subscription_notifications(
         # Create notification
         try:
             reason_text = " and ".join(notification_reason)
-            notification = Notification.objects.create_for_user(
-                user=user,
+            notification = Profile.objects.get(user=user).create_notification(
                 title=f"{cve_id} may affect {len(user_affected_packages)} packages you're {reason_text}",
                 message=f"Affected packages: {', '.join(user_affected_packages)}. ",
             )
