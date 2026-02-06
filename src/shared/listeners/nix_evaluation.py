@@ -274,7 +274,9 @@ async def evaluation_entrypoint(
 @pgpubsub.post_insert_listener(NixEvaluationChannel)
 def run_evaluation_job(old: NixEvaluation, new: NixEvaluation) -> None:
     evaluation = NixEvaluation.objects.select_related("channel").get(pk=new.pk)
-    average_evaluation_time = NixEvaluation.objects.aggregate(
+    average_evaluation_time = NixEvaluation.objects.filter(
+        state=NixEvaluation.EvaluationState.COMPLETED,
+    ).aggregate(
         avg_eval_time=Avg("elapsed")
     )
     if average_evaluation_time is not None:
