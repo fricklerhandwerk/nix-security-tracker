@@ -5,6 +5,7 @@
 }:
 let
   sectracker = import ../. { inherit pkgs; };
+  zram-tmp = "/dev/zram-tmp";
 in
 {
   imports = [
@@ -22,6 +23,14 @@ in
     device = "/dev/disk/by-label/boot";
     fsType = "ext4";
   };
+  fileSystems."/tmp" = {
+    device = zram-tmp; # Use stable symlink
+    fsType = "tmpfs";
+    options = [
+      "mode=1777"
+      "nr_inodes=4000000"
+    ];
+  };
   swapDevices = [ { device = "/dev/disk/by-label/swap"; } ];
 
   # Given 16G RAM, this should be barely enough at the time of writing:
@@ -33,12 +42,31 @@ in
   # - We observe ~2M store paths in an active evaluation, taking ~6GB
   # - Nixpkgs checkout in /tmp needs ~500MB
   # Adjust parameters (or get a bigger machine) if it doesn't work out.
-  boot.tmp = {
-    useZram = true;
-    zramSettings = {
-      zram-size = "ram * 0.35";
-      options = "X-mount.mode=1777,discard,nr_inodes=4000000";
+  systemd.services.zram-tmp-setup = {
+    description = "Set up zram device for /tmp";
+    wantedBy = [ "local-fs-pre.target" ];
+    before = [
+      "local-fs-pre.target"
+      "tmp.mount"
+    ];
+    unitConfig = {
+      DefaultDependencies = false;
     };
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    script = ''
+      # Create next zram device and get its number
+      NUM="$(cat /sys/class/zram-control/hot_add)"
+      DEV=/dev/zram"$NUM"
+
+      echo zstd > /sys/block/zram"$NUM"/comp_algorithm
+      echo 7G > /sys/block/zram"$NUM"/disksize
+
+      # Create symlink for tmp.mount to find
+      ln -sf "$DEV" ${zram-tmp}
+    '';
   };
 
   systemd.network.networks."10-wan" = {
