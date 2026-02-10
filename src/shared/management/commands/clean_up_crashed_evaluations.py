@@ -26,7 +26,10 @@ class Command(BaseCommand):
         # Derivations should instead be protected, but currently we're not deduplicating any metadata.
         # Fix this logic when derivation metadata is deduplicated!
         metas = NixDerivation.objects.filter(
-            parent_evaluation__state=NixEvaluation.EvaluationState.CRASHED
+            parent_evaluation__state__in=[
+                NixEvaluation.EvaluationState.CRASHED,
+                NixEvaluation.EvaluationState.FAILED,
+            ]
             # XXX(@fricklerhandwerk): We could exclude drvs from crashed evals that belong to accepted or published suggestions to be safe.
             # But checking the production database, all such instances have drvs from completed evals with the same attribute name,
             # and we're not creating any new problematic instances.
