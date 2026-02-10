@@ -60,7 +60,7 @@ class NixSourceProvenance(models.Model):
     something is a binary native code or comes from a real source build.
     """
 
-    qualifier = models.CharField(max_length=255)
+    qualifier = models.CharField(max_length=255, unique=True)
     source = models.BooleanField()
 
     # TODO: define binary as !source

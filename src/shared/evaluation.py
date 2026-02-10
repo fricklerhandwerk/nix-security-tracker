@@ -19,6 +19,7 @@ from shared.models.nix_evaluation import (
     NixMaintainer,
     NixOutput,
     NixStorePathOutput,
+    NixSourceProvenance,
 )
 
 T = TypeVar("T", bound=Model)
@@ -47,6 +48,12 @@ class LicenseAttribute(JSONWizard):
 
 
 @dataclass
+class SourceProvenanceAttribute(JSONWizard):
+    short_name: str
+    is_source: bool
+
+
+@dataclass
 class MetadataAttribute(JSONWizard, LoadMixin, DumpMixin):
     outputs_to_install: list[str] = field(default_factory=list)
     available: bool = True
@@ -63,6 +70,7 @@ class MetadataAttribute(JSONWizard, LoadMixin, DumpMixin):
     license: list[LicenseAttribute] = field(default_factory=list)
     platforms: list[str] = field(default_factory=list)
     known_vulnerabilities: list[str] = field(default_factory=list)
+    source_provenance: list[SourceProvenanceAttribute] = field(default_factory=list)
 
     def __pre_as_dict__(self) -> None:
         linearized_maintainers = []
@@ -242,6 +250,19 @@ class SyncBatchAttributeIngester:
 
         return [obj for obj, _ in lics]
 
+    def ingest_source_provenance(self, sources: list[SourceProvenanceAttribute]) -> list[NixSourceProvenance]:
+        result = []
+        seen = set()
+        for source in sources:
+            if source.short_name in seen:
+                continue
+            result.append(NixSourceProvenance.objects.get_or_create(
+                qualifier=source.short_name,
+                source=source.is_source,
+            ))
+            seen.add(qualifier)
+        return [src for src, _ in result]
+
     def ingest_meta(
         self, evaluation: EvaluatedAttribute
     ) -> tuple[
@@ -259,6 +280,8 @@ class SyncBatchAttributeIngester:
             licenses = self.ingest_licenses(metadata.license)
         else:
             licenses = self.ingest_licenses([metadata.license])
+        source_provenances = self.ingest_source_provenance(metadata.source_provenance)
+
         meta = NixDerivationMeta(
             name=metadata.name,
             insecure=metadata.insecure,
@@ -271,6 +294,7 @@ class SyncBatchAttributeIngester:
             main_program=metadata.main_program,
             position=metadata.position,
             known_vulnerabilities=metadata.known_vulnerabilities,
+            source_provenances=source_provenances,
         )
 
         # Those thunks are here to delay the evaluation of the M2M throughs.
