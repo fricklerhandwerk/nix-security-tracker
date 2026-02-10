@@ -16,6 +16,15 @@ def text_length(choices: type[models.TextChoices]) -> int:
     return max(map(len, choices.values))
 
 
+class NixPackage(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    derivations = models.ManyToManyField(NixDerivation, related_name="package")
+
+    def __str__(self) -> str:
+        return self.name
+
+
 @pghistory.track(fields=["status"])
 class CVEDerivationClusterProposal(TimeStampMixin):
     """
