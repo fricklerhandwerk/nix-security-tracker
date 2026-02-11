@@ -130,6 +130,9 @@ pkgs.testers.runNixOSTest {
       server.wait_for_unit("${application}-worker.service")
       server.wait_for_unit("mock-channels.service")
 
+      with subtest("Check that no migrations were missed"):
+        server.succeed("wst-manage makemigrations --check --dry-run")
+
       with subtest("Check that channel are fetched and evaluations enqueued"):
         server.succeed("wst-manage fetch_all_channels")
         ${in-shell "succeed" ''
