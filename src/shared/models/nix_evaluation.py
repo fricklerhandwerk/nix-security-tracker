@@ -24,7 +24,7 @@ class NixMaintainer(models.Model):
     """
 
     github_id = models.IntegerField(unique=True, primary_key=True)
-    github = models.CharField(max_length=200, unique=True)
+    github = models.CharField(max_length=200)
     email = models.CharField(max_length=200, null=True)
     matrix = models.CharField(max_length=200, null=True)
     name = models.CharField(max_length=200, null=True)
