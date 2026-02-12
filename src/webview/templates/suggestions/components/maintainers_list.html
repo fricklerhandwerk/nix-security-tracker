@@ -25,9 +25,9 @@
 
       <!-- Ignored maintainers (collapsed by default) -->
       {% if data.ignored %}
-        <details class="column gap-small">
+        <details id="maintainers-list-{{ data.suggestion_id }}-ignored" class="column gap-small">
           <summary class="heading dimmed">Ignored maintainers ({{ data.ignored|length }})</summary>
-          <ul id="maintainers-list-{{ data.suggestion_id }}-ignored" class="column gap-small">
+          <ul class="column gap-small">
             {% for maintainer_context in data.ignored %}
               <li class="maintainer-container">
                 {% maintainer maintainer_context %}
