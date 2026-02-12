@@ -3,23 +3,18 @@ import logging
 import time
 from collections.abc import Callable, Generator
 from dataclasses import dataclass, field
-from itertools import chain
 from typing import Any, TypeVar
 
 from dataclass_wizard import JSONWizard, LoadMixin
 from django.db.models import Model
-from django.db.utils import IntegrityError
 
 from shared.models.nix_evaluation import (
     MAJOR_CHANNELS,
     NixDerivation,
     NixDerivationMeta,
-    NixDerivationOutput,
     NixEvaluation,
     NixLicense,
     NixMaintainer,
-    NixOutput,
-    NixStorePathOutput,
 )
 
 T = TypeVar("T", bound=Model)
@@ -190,8 +185,6 @@ class SyncBatchAttributeIngester:
     def initialize(self) -> None:
         self.maintainers = list(NixMaintainer.objects.all())
         self.licenses = list(NixLicense.objects.all())
-        outputs = list(NixOutput.objects.all())
-        self.outputs = {model.output_name: model for model in outputs}
 
     def parse_maintainers(
         self, maintainers: list[MaintainerAttribute]
@@ -285,30 +278,6 @@ class SyncBatchAttributeIngester:
 
         return meta, maintainers, licenses
 
-    def ingest_outputs(
-        self, evaluation: EvaluatedAttribute
-    ) -> list[NixStorePathOutput]:
-        store_paths = [f"{value}!{key}" for (key, value) in evaluation.outputs.items()]
-        existing = NixStorePathOutput.objects.in_bulk(
-            store_paths, field_name="store_path"
-        )
-        return list(existing.values()) + [
-            NixStorePathOutput(store_path=store_path)
-            for store_path in store_paths
-            if store_path not in existing
-        ]
-
-    def parse_dependencies(
-        self, evaluation: EvaluatedAttribute
-    ) -> list[NixDerivationOutput]:
-        # FIXME(raitobezarius): bulk upsert the outputs
-        # then add them into the M2M.
-
-        return [
-            NixDerivationOutput(derivation_path=drvpath)
-            for drvpath in evaluation.input_drvs.keys()
-        ]
-
     def make_derivation_shell(
         self,
         attribute: EvaluatedAttribute,
@@ -324,67 +293,6 @@ class SyncBatchAttributeIngester:
         )
 
     def ingest(self) -> list[NixDerivation]:
-        start = time.time()
-        dependencies = by_drv_key(
-            (evaluation, self.parse_dependencies(evaluation))
-            for evaluation in self.evaluations
-        )
-        NixDerivationOutput.objects.bulk_create(
-            chain.from_iterable(dependencies.values())
-        )
-        logger.debug(
-            "Ingestion of all dependencies (%d) took %f s",
-            len(dependencies),
-            time.time() - start,
-        )
-
-        outputs = by_drv_key(
-            (evaluation, self.ingest_outputs(evaluation))
-            for evaluation in self.evaluations
-        )
-        # FIXME(@fricklerhandwerk): Bulk-insert the store paths following the same pattern as the rest.
-        start = time.time()
-        inserted = False
-        attempt = 0
-        store_path_outputs = {
-            item.store_path: item for item in chain.from_iterable(outputs.values())
-        }
-        new_store_path_outputs = [
-            spo for spo in store_path_outputs.values() if spo.pk is None
-        ]
-        while not inserted:
-            try:
-                for spo in NixStorePathOutput.objects.bulk_create(
-                    new_store_path_outputs
-                ):
-                    store_path_outputs[spo.store_path].pk = spo.pk
-                inserted = True
-                logger.debug(
-                    "Ingestion of all Nix store path outputs (%d) took %f s",
-                    len(store_path_outputs),
-                    time.time() - start,
-                )
-            except IntegrityError:
-                logger.debug(
-                    "Failed to bulk-insert all Nix store path outputs, attempt %d...",
-                    attempt,
-                )
-                attempt += 1
-                existing_new = NixStorePathOutput.objects.in_bulk(
-                    [spo.store_path for spo in new_store_path_outputs],
-                    field_name="store_path",
-                )
-                # Filter out existing new ones.
-                new_store_path_outputs = [
-                    spo
-                    for spo in new_store_path_outputs
-                    if spo.store_path not in existing_new
-                ]
-                # Extend existing new ones with IDs.
-                for spath, existing in existing_new.items():
-                    store_path_outputs[spath].pk = existing.pk
-                continue
-
         start = time.time()
         bulk_derivations: dict[tuple[str, str, str, str | None], NixDerivation] = {}
         bulk_maintainers: dict[int, NixMaintainer] = {}
@@ -459,13 +367,7 @@ class SyncBatchAttributeIngester:
             ],
         )
         # FIXME(@fricklerhandwerk): This duplicates metadata entries at least by the number of systems we evaluate.
-        # In practice, the only variation is on these fields, which should be `unique_together`:
-        # - position
-        # - available
-        # - broken
-        # - unfree
-        # - unsupported
-        # - insecure
+        # [ref:deduplicate-metadata]
         db_licenses = NixLicense.objects.in_bulk(
             bulk_licenses.keys(),
             field_name="spdx_id",
@@ -535,55 +437,6 @@ class SyncBatchAttributeIngester:
         db_derivations = dict(zip(bulk_derivations.keys(), db_derivations_list))
         logger.debug(
             "Ingested %d derivation shells in %f s",
-            len(bulk_derivations),
-            time.time() - start,
-        )
-
-        start = time.time()
-        # FIXME(@fricklerhandwerk): Dependencies should link to each other, not to store derivation paths.
-        # We're currently wasting tons of space because of that.
-        deps_throughs = []
-        for key, eval_dependencies in dependencies.items():
-            assert all(dep.pk is not None for dep in eval_dependencies), (
-                "One dependency has no PK"
-            )
-            deps_throughs.extend(
-                [
-                    NixDerivation.dependencies.through(
-                        nixderivationoutput_id=dep.pk,
-                        nixderivation_id=db_derivations[key].pk,
-                    )
-                    for dep in eval_dependencies
-                ]
-            )
-        NixDerivation.dependencies.through.objects.bulk_create(deps_throughs)
-        logger.debug(
-            "Ingested %d dependencies M2Ms for %d derivations in %f s",
-            len(deps_throughs),
-            len(bulk_derivations),
-            time.time() - start,
-        )
-
-        start = time.time()
-        outputs_throughs = []
-        for key, eval_outputs in outputs.items():
-            assert all(
-                store_path_outputs[output.store_path].pk is not None
-                for output in eval_outputs
-            ), "One output has no PK"
-            outputs_throughs.extend(
-                [
-                    NixDerivation.outputs.through(
-                        nixstorepathoutput_id=store_path_outputs[output.store_path].pk,
-                        nixderivation_id=db_derivations[key].pk,
-                    )
-                    for output in eval_outputs
-                ]
-            )
-        NixDerivation.outputs.through.objects.bulk_create(outputs_throughs)
-        logger.debug(
-            "Ingested %d outputs M2Ms for %d derivations in %f s",
-            len(outputs_throughs),
             len(bulk_derivations),
             time.time() - start,
         )

@@ -175,8 +175,6 @@ def cache_new_suggestions(suggestion: CVEDerivationClusterProposal) -> None:
     derivations = list(
         suggestion.derivations.select_related("metadata", "parent_evaluation")
         .prefetch_related(
-            "outputs",
-            "dependencies",
             Prefetch(
                 "metadata__maintainers",
                 queryset=NixMaintainer.objects.distinct(),
