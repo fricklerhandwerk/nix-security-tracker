@@ -135,7 +135,6 @@ def test_add_maintainer_from_invalid_github_handle_returns_error(
     expect(error).to_be_visible()
 
 
-@pytest.mark.xfail(reason="Not implemented")
 @pytest.mark.parametrize(
     "ignore_maintainer",
     [True, False],
