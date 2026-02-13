@@ -88,13 +88,7 @@ class IgnorePackageView(PackageOperationBaseView):
         self, suggestion: CVEDerivationClusterProposal, package_attr: str
     ) -> None:
         """Create or update PackageEdit to ignore the package."""
-        edit, created = suggestion.package_edits.get_or_create(
-            package_attribute=package_attr,
-            defaults={"edit_type": PackageEdit.EditType.REMOVE},
-        )
-        if not created and edit.edit_type != PackageEdit.EditType.REMOVE:
-            edit.edit_type = PackageEdit.EditType.REMOVE
-            edit.save()
+        suggestion.ignore_package(package_attr)
 
     def _get_operation_name(self) -> str:
         return "ignore"
@@ -107,10 +101,7 @@ class RestorePackageView(PackageOperationBaseView):
         self, suggestion: CVEDerivationClusterProposal, package_attr: str
     ) -> None:
         """Remove PackageEdit entries to restore the package."""
-        suggestion.package_edits.filter(
-            package_attribute=package_attr,
-            edit_type=PackageEdit.EditType.REMOVE,
-        ).delete()
+        suggestion.restore_package(package_attr)
 
     def _get_operation_name(self) -> str:
         return "restore"
