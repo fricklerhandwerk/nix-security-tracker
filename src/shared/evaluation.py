@@ -71,8 +71,6 @@ class EvaluatedAttribute(JSONWizard):
     attr_path: list[str]
     name: str
     drv_path: str
-    # drv -> list of outputs.
-    input_drvs: dict[str, list[str]]
     meta: MetadataAttribute | None
     outputs: dict[str, str]
     system: str
