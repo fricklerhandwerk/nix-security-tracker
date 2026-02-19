@@ -58,11 +58,12 @@ class SuggestionListView(SuggestionBaseView, ABC):
 
         context.update(
             {
-                "suggestion_contexts": suggestion_contexts,
+                "suggestions": suggestion_contexts,
                 "page_obj": page_obj,
                 "status_filter": self.status_filter,
                 "package_filter": self.package_filter,
                 "adjusted_elided_page_range": paginator.get_elided_page_range(),
+                "result_count": suggestions.count(),
                 "is_paginated": True,
             }
         )
