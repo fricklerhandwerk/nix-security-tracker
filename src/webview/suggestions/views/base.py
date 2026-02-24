@@ -79,7 +79,7 @@ class SuggestionBaseView(TemplateView, ABC):
                 "untriaged_suggestions",
                 "accepted_suggestions",
                 "dismissed_suggestions",
-                "published_suggestions",
+                "issue_list",
             ]
 
             return resolved.url_name in list_url_names
