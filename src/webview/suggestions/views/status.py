@@ -15,7 +15,6 @@ from webview.suggestions.context.types import SuggestionStubContext
 
 from .base import (
     SuggestionBaseView,
-    fetch_activity_log,
     fetch_suggestion,
     get_suggestion_context,
 )
@@ -103,7 +102,7 @@ class UpdateSuggestionStatusView(SuggestionBaseView):
         suggestion.save()
 
         # Refresh activity_log
-        suggestion_context.activity_log = fetch_activity_log(suggestion.pk)
+        suggestion_context.fetch_activity_log()
 
         # Refresh packages and maintainers edit status
         suggestion_context.package_list_context.editable = suggestion.is_editable

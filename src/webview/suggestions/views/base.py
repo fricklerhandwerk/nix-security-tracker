@@ -8,26 +8,14 @@ from django.urls import resolve
 from django.views.generic import TemplateView
 
 from shared.auth import can_publish_github_issue
-from shared.logs.batches import FoldedEventType, batch_events
-from shared.logs.events import remove_canceling_events
-from shared.logs.fetchers import fetch_suggestion_events
 from shared.models.linkage import (
     CVEDerivationClusterProposal,
-)
-from webview.suggestions.context.builders import (
-    get_maintainer_list_context,
-    get_package_list_context,
 )
 from webview.suggestions.context.types import SuggestionContext
 
 
 def fetch_suggestion(suggestion_id: int) -> CVEDerivationClusterProposal:
     return get_object_or_404(CVEDerivationClusterProposal, id=suggestion_id)
-
-
-def fetch_activity_log(suggestion_id: int) -> list[FoldedEventType]:
-    raw_events = fetch_suggestion_events(suggestion_id)
-    return batch_events(remove_canceling_events(raw_events, sort=True))
 
 
 def get_suggestion_context(
@@ -37,11 +25,6 @@ def get_suggestion_context(
     return SuggestionContext(
         suggestion=suggestion,
         can_edit=can_edit,
-        package_list_context=get_package_list_context(suggestion, can_edit=can_edit),
-        maintainer_list_context=get_maintainer_list_context(
-            suggestion, can_edit=can_edit
-        ),
-        activity_log=fetch_activity_log(suggestion.pk),
     )
 
 
