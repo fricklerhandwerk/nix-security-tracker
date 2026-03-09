@@ -203,5 +203,7 @@ class SuggestionContext:
         self.references = refs
 
     def fetch_activity_log(self) -> None:
-        raw_events = fetch_suggestion_events(self.suggestion.pk)
-        self.activity_log = batch_events(remove_canceling_events(raw_events, sort=True))
+        raw_events = []
+        for l in fetch_suggestion_events([self.suggestion.pk]).values():
+            raw_events.extend(l)
+        self.activity_log = batch_events(remove_canceling_events(events, sort=True))

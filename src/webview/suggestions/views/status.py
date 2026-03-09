@@ -3,8 +3,8 @@ from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.urls import reverse
 
 from shared.auth import can_edit_suggestion
-from shared.logs.fetchers import fetch_suggestion_events_batch
 from shared.github import create_gh_issue
+from shared.logs.fetchers import fetch_suggestion_events
 from shared.models import (
     NixpkgsIssue,
 )
@@ -46,7 +46,7 @@ class UpdateSuggestionStatusView(SuggestionBaseView):
 
         # Get suggestion context
         suggestion = fetch_suggestion(suggestion_id)
-        events = fetch_suggestion_events_batch([suggestion.pk])
+        events = fetch_suggestion_events([suggestion.pk])
         suggestion_context = get_suggestion_context(
             suggestion,
             can_edit=can_edit,

@@ -6,7 +6,7 @@ from typing import Any, cast
 from django.core.validators import RegexValidator
 from django.db.models import Prefetch
 
-from shared.logs.fetchers import fetch_suggestion_events_batch
+from shared.logs.fetchers import fetch_suggestion_events
 from webview.suggestions.views.base import get_suggestion_context
 
 if typing.TYPE_CHECKING:
@@ -56,9 +56,11 @@ class NixpkgsIssueView(DetailView):
         issue = self.get_object()
 
         # Fetch suggestion_context
-        events = fetch_suggestion_events_batch([issue.suggestion_id])
+        events = fetch_suggestion_events([issue.suggestion_id])
         context["suggestion_context"] = get_suggestion_context(
-            issue.suggestion, can_edit=False, pre_fetched_events=events[issue.suggestion_id]
+            issue.suggestion,
+            can_edit=False,
+            pre_fetched_events=events[issue.suggestion_id],
         )
         context["suggestion_context"].show_status = False
         github_issue_opened = NixpkgsEvent.objects.filter(
@@ -101,7 +103,7 @@ class NixpkgsIssueListView(ListView):
 
         # Fetch activity logs
         suggestion_ids = [issue.suggestion_id for issue in context["object_list"]]
-        events_by_suggestion = fetch_suggestion_events_batch(suggestion_ids)
+        events_by_suggestion = fetch_suggestion_events(suggestion_ids)
         for issue in context["object_list"]:
             # FIXME(@fricklerhandwerk): We're assigning an object field that doesn't exist.
             # The horrible thing is that it still works, because somewhere in the template processing it does the equivalent of `object.__dict__` and there the key shows up again.

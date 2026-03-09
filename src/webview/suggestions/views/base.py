@@ -9,7 +9,7 @@ from django.views.generic import TemplateView
 
 from shared.auth import can_edit_suggestion
 from shared.logs.events import RawEventType
-from shared.logs.fetchers import fetch_suggestion_events_batch
+from shared.logs.fetchers import fetch_suggestion_events
 from shared.models.linkage import (
     CVEDerivationClusterProposal,
 )
@@ -119,7 +119,7 @@ class SuggestionContentEditBaseView(SuggestionBaseView, ABC):
 
         # Get suggestion context
         suggestion = fetch_suggestion(suggestion_id)
-        events = fetch_suggestion_events_batch([suggestion.pk])
+        events = fetch_suggestion_events([suggestion.pk])
         suggestion_context = get_suggestion_context(
             suggestion, can_edit=can_edit, pre_fetched_events=events[suggestion.pk]
         )
