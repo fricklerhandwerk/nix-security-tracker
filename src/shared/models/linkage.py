@@ -90,8 +90,12 @@ class CVEDerivationClusterProposal(TimeStampMixin):
 
 
 @pghistory.track(
-    pghistory.ManualEvent("maintainer.add"),
+    # Immutable in the automatic suggestion
     pghistory.ManualEvent("maintainer.ignore"),
+    pghistory.ManualEvent("maintainer.restore"),
+    # Provided by users
+    pghistory.ManualEvent("maintainer.add"),
+    pghistory.ManualEvent("maintainer.remove"),
 )
 class MaintainerOverlay(models.Model):
     """
@@ -124,8 +128,12 @@ class MaintainerOverlay(models.Model):
 
 
 @pghistory.track(
-    pghistory.ManualEvent("package.add"),
+    # Immutable in the automatic suggestion
     pghistory.ManualEvent("package.ignore"),
+    pghistory.ManualEvent("package.restore"),
+    # Provided by users
+    pghistory.ManualEvent("package.add"),
+    pghistory.ManualEvent("package.remove"),
 )
 class PackageOverlay(models.Model):
     """
@@ -200,13 +208,16 @@ def track_maintainers_edit_save(
         )
 
 
-@receiver(post_delete, sender=MaintainersEdit)
+@receiver(post_delete, sender=MaintainerOverlay)
 def track_maintainers_edit_delete(
     sender: type[MaintainersEdit], instance: MaintainersEdit, **kwargs: Any
 ) -> None:
     label = (
+        # TODO(@fricklerhandwerk): distinguish between
+        # - ignore/restore (for maintainers that are baked into the suggestion)
+        # - add/remove (user-provided additional)(rename the button to make it consistent?)
         "maintainers.remove"
-        if instance.edit_type == MaintainersEdit.EditType.ADD
+        if instance.edit_type == MaintainersEdit.EditType.ADDED
         else "maintainers.add"
     )
     pghistory.create_event(
