@@ -90,17 +90,17 @@ class CVEDerivationClusterProposal(TimeStampMixin):
 
 
 @pghistory.track(
-    pghistory.ManualEvent("maintainers.add"),
-    pghistory.ManualEvent("maintainers.remove"),
+    pghistory.ManualEvent("maintainer.add"),
+    pghistory.ManualEvent("maintainer.ignore"),
 )
-class MaintainersEdit(models.Model):
+class MaintainerOverlay(models.Model):
     """
-    A single manual edit of the list of maintainers of a suggestion.
+    An element in the overlay set of maintainers of a suggestion.
     """
 
-    class EditType(models.TextChoices):
-        ADD = "add", _("add")
-        REMOVE = "remove", _("remove")
+    class OverlayType(models.TextChoices):
+        ADDED = "additional", _("additional")
+        REMOVED = "ignored", _("ignored")
 
     edit_type = models.CharField(
         max_length=text_length(EditType), choices=EditType.choices
@@ -125,16 +125,16 @@ class MaintainersEdit(models.Model):
 
 @pghistory.track(
     pghistory.ManualEvent("package.add"),
-    pghistory.ManualEvent("package.remove"),
+    pghistory.ManualEvent("package.ignore"),
 )
-class PackageEdit(models.Model):
+class PackageOverlay(models.Model):
     """
-    A single manual edit of the list of packages of a suggestion.
+    An element in the overlay set of packages of a suggestion.
     """
 
-    class EditType(models.TextChoices):
-        REMOVE = "remove", _("remove")
-        # ADD reserved for future use if needed
+    class OverlayType(models.TextChoices):
+        REMOVED = "ignored", _("ignored")
+        # ADDED reserved for future use if needed
 
     edit_type = models.CharField(
         max_length=text_length(EditType), choices=EditType.choices
