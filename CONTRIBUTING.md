@@ -20,6 +20,24 @@ Run the formatter manually with:
 nix-shell --run format
 ```
 
+## Contribution culture
+
+Please bear in mind that reviewing contributions primarily means validating (and often discussing) the decisions they contain.
+Every pull request is saying "we should do _this_ like _that_ from now on".
+
+Therefore:
+
+- Make as few decisions as possible in each pull request, ideally exactly one.
+- Describe the decision in the commit message title.
+- If the reason is not trivial, explain _why_ the change is made in the commit message and the pull request description.
+- Don't describe _what_ the change is, this is evident from the change itself.
+- Strive to keep the diff small, ideally less than 100 lines.
+  Larger changes typically mean that you made too many decisions at once.
+- Don't rewrite history, address review comments in new commits.
+  The pull request should still amount to a small change and can be squash-merged.
+
+This will reduce turnaround time for getting your contribution merged.
+
 ## Tagged comments
 
 We use these tagged comments inspired by and loosely following [PEP 450](https://peps.python.org/pep-0350/#mnemonics):
