@@ -9,6 +9,21 @@ This file contains general contribution information, but the other directories i
 # Hacking
 
 The service is implemented in Python using [Django](https://www.djangoproject.com/).
+It is built and deployed with [Nix](https://nix.dev).
+
+To get going, all you need is to [install Nix](https://nix.dev/install-nix).
+
+## Running the service in a development environment
+
+Start a development shell:
+
+```console
+nix-shell
+```
+
+This will provide most of tools necessary to run the service locally.
+
+Set up [`nix-direnv`](https://github.com/nix-community/nix-direnv) on your system and run `direnv allow` to enter the development environment automatically when entering the project directory.
 
 ## Formatting
 
@@ -129,15 +144,9 @@ To configure the GitHub app and the webhook in the GitHub organisation settings:
 
 </details>
 
-## Running the service in a development environment
+## Working with the database
 
-Start a development shell:
-
-```console
-nix-shell
-```
-
-Or set up [`nix-direnv`](https://github.com/nix-community/nix-direnv) on your system and run `direnv allow` to enter the development environment automatically when entering the project directory.
+You will need a local instance of the database to run tests and experiment manually.
 
 ### Set up a local database
 
