@@ -22,21 +22,36 @@ nix-shell --run format
 
 ## Contribution culture
 
-Please bear in mind that reviewing contributions primarily means validating (and often discussing) the decisions they contain.
-Every pull request is saying "we should do _this_ like _that_ from now on".
+To minimise turnaround time for getting your contribution merged:
 
-Therefore:
+- Make exactly one change in each pull request.
 
-- Make as few decisions as possible in each pull request, ideally exactly one.
-- Describe the decision in the commit message title.
-- If the reason is not trivial, explain _why_ the change is made in the commit message and the pull request description.
-- Don't describe _what_ the change is, this is evident from the change itself.
-- Strive to keep the diff small, ideally less than 100 lines.
-  Larger changes typically mean that you made too many decisions at once.
+  Don't lump together unrelated changes.
+  Otherwise, easy parts that could be merged on their own get blocked by the harder ones that need multiple iterations to get right.
+
+- Describe the change in the commit message in abstract terms.
+
+  Don't describe _what_ the change is, this is evident from the change itself.
+
+  - Good: `fix: race condition during ingestion`
+  - Bad: `fix: add with transaction.atomic() in ingestion.py`
+
+- If the change is not trivial, explain _why_ the change is made in the pull request description and commit message.
+
+  Empty pull request and commit messages are fine if the rationale is evident from the commit message.
+
+- Strive to keep the diff small.
+
+  Larger changes typically mean that you made too many changes at once.
+  Exceptions are mechanical changes that can be checked at a glance or reproduced by running a command.
+
 - Don't rewrite history, address review comments in new commits.
+
   The pull request should still amount to a small change and can be squash-merged.
 
-This will reduce turnaround time for getting your contribution merged.
+- Always add tests when changing behavior or fixing bugs.
+
+- Run `nix-shell --run format` before pushing.
 
 ## Tagged comments
 
