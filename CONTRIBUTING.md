@@ -22,7 +22,7 @@ nix-shell --run format
 
 ## Contribution culture
 
-A pull request asks a maintainer to accept responsibility for a decision.
+A pull request asks maintainers to accept responsibility for a decision.
 Help them understand what they're agreeing to.
 
 To minimise turnaround time for getting your contribution merged:
