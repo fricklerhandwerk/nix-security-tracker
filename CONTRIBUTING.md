@@ -22,6 +22,9 @@ nix-shell --run format
 
 ## Contribution culture
 
+A pull request asks a maintainer to accept responsibility for a decision.
+Help them understand what they're agreeing to.
+
 To minimise turnaround time for getting your contribution merged:
 
 - Make exactly one change in each pull request.
@@ -29,16 +32,16 @@ To minimise turnaround time for getting your contribution merged:
   Don't lump together unrelated changes.
   Otherwise, easy parts that could be merged on their own get blocked by the harder ones that need multiple iterations to get right.
 
-- Describe the change in the commit message in abstract terms.
-
-  Don't describe _what_ the change is, this is evident from the change itself.
+- Use the commit message title to describe the change such that its merit can be evaluated.
 
   - Good: `fix: race condition during ingestion`
   - Bad: `fix: add with transaction.atomic() in ingestion.py`
 
 - If the change is not trivial, explain _why_ the change is made in the pull request description and commit message.
 
-  Empty pull request and commit messages are fine if the rationale is evident from the commit message.
+  Also describe consequences of the change if they aren't obvious.
+
+  Empty pull request descriptions and commit messages are fine if rationale and impact are evident from the title.
 
 - Strive to keep the diff small.
 
