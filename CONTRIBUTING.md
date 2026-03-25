@@ -63,6 +63,13 @@ To minimise turnaround time for getting your contribution merged:
   Don't lump together unrelated changes.
   Otherwise, easy parts that could be merged on their own get blocked by the harder ones that need multiple iterations to get right.
 
+- Always add tests when changing behavior or fixing bugs.
+
+  Ideally, start by adding tests.
+
+  Even contributions that consist entirely of new tests annotated with `@pytest.mark.xfail(reason="Not implemented")` are welcome!
+  This is a good way of formalising requirements to be implemented in the future.
+
 - Use the commit message title to describe the change such that its merit can be evaluated.
   - Good: `fix: race condition during ingestion`
   - Bad: `fix: add with transaction.atomic() in ingestion.py`
@@ -81,8 +88,6 @@ To minimise turnaround time for getting your contribution merged:
 - Don't rewrite history, address review comments in new commits.
 
   The pull request should still amount to a small change and can be squash-merged.
-
-- Always add tests when changing behavior or fixing bugs.
 
 - Run `nix-shell --run format` before pushing.
 
