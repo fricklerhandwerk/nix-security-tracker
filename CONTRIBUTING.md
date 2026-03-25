@@ -89,7 +89,7 @@ To minimise turnaround time for getting your contribution merged:
 
   The pull request should still amount to a small change and can be squash-merged.
 
-- Run `nix-shell --run format` before pushing.
+- Run `nix-shell --run format` and `nix-build -A tests` before pushing.
 
 ## Tagged comments
 
