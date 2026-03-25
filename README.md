@@ -6,11 +6,9 @@ It is deployed at <https://tracker.security.nixos.org>.
 
 The tool serves three audiences:
 
-- **NixOS security team members** use it to access a feed of CVEs being published, in order to decide on their relevance, link them to affected packages in Nixpkgs, notify package maintainers, and coordinate mitigation.
-
-- **Nixpkgs package maintainers** get notified and receive updates on security issues that affect packages they maintain, reducing the turnaround time on providing or reviewing fixes.
-
-- **Nixpkgs users** can subscribe to notifications on issues that affect the packages they are interested in.
+- **NixOS security team**: review incoming CVEs and link them to affected packages
+- **Nixpkgs maintainers**: get notified when their packages have vulnerabilities
+- **Nixpkgs users**: subscribe to notifications for packages they care about
 
 ## Contributing
 
