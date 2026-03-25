@@ -39,7 +39,7 @@ nix-shell
 
 This will provide most of tools necessary to run the service locally.
 
-> ![NOTE]
+> [!NOTE]
 > Set up [`nix-direnv`](https://github.com/nix-community/nix-direnv) on your system and run `direnv allow` to enter the development environment automatically when entering the project directory.
 
 ## Formatting
