@@ -59,6 +59,7 @@ async def perform_evaluation(
         inHydra = false;
         allowInsecurePredicate = (_: true);
         scrubJobs = false;
+        supportedSystems = [ "x86_64-linux" ];
       };
     }
     """
