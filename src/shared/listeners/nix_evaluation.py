@@ -52,8 +52,17 @@ async def perform_evaluation(
     the execution runtime.
     """
     # TODO(raitobezarius): bring a Nix code generator, that'd be cuter.
-    nixpkgs_config = "{ config = { allowUnfree = true; inHydra = false; allowInsecurePredicate = (_: true); scrubJobs = false; }; };"
-    evaluation_wrapper = f"(import <nixpkgs/pkgs/top-level/release.nix> {{ nixpkgsArgs = {nixpkgs_config} }})"
+    nixpkgs_config = """
+    {
+      config = {
+        allowUnfree = true;
+        inHydra = false;
+        allowInsecurePredicate = (_: true);
+        scrubJobs = false;
+      };
+    }
+    """
+    evaluation_wrapper = f"(import <nixpkgs/pkgs/top-level/release.nix> {{ nixpkgsArgs = {nixpkgs_config}; }})"
     arguments = [
         "--force-recurse",
         "--meta",
