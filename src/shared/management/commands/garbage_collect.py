@@ -263,7 +263,7 @@ class Command(BaseCommand):
             ),
             model=DerivationClusterProposalLink,
             pk_field="id",
-            label="proposal links",
+            label="suggestion links to duplicate derivations",
             batch_size=batch_size,
         )
 
@@ -273,7 +273,7 @@ class Command(BaseCommand):
             ),
             model=NixDerivation,
             pk_field="id",
-            label="derivations without metadata",
+            label="duplicate derivations",
             batch_size=batch_size,
         )
 
@@ -281,7 +281,7 @@ class Command(BaseCommand):
             qs=NixDerivationMeta.objects.filter(derivation__isnull=True),
             model=NixDerivationMeta,
             pk_field="id",
-            label="derivation metadata",
+            label="dangling metadata",
             batch_size=batch_size,
         )
 
