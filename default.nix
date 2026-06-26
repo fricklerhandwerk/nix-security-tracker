@@ -56,6 +56,7 @@ rec {
       name = "ci";
       paths = [
         deploy
+        pkgs.nodejs
         pkgs.npins
         pkgs.zizmor
       ];
