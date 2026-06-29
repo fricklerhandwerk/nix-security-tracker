@@ -196,7 +196,7 @@ def make_evaluation(
         commit_sha1: str | None = None,
     ) -> NixEvaluation:
         evaluation = NixEvaluation.objects.create(
-            channel=channel,
+            branch=channel.release_branch,
             commit_sha1=commit_sha1
             if commit_sha1 is not None
             else secrets.token_hex(16),

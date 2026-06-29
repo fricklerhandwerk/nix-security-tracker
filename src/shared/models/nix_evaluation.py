@@ -128,12 +128,29 @@ class NixDerivationMeta(models.Model):
 
 
 class NixpkgsBranch(models.Model):
+    """
+    A Nixpkgs source branch that gets evaluated, e.g. `master` or `release-26.05`.
+    """
+
     name = models.CharField(max_length=126, primary_key=True)
     repository = models.CharField(max_length=255)
     head_sha1_commit = models.CharField(max_length=126)
 
     def __str__(self) -> str:
         return self.name
+
+    @property
+    def is_tracking_branch(self) -> bool:
+        """
+        Whether this branch is the tracking branch.
+
+        The tracking branch is the source of truth for package metadata such as descriptions and maintainer information.
+        """
+        return self.name == settings.TRACKING_BRANCH
+
+    @property
+    def is_tracked(self) -> bool:
+        return self.channels.filter(state__in=NixChannel.TRACKED_STATES).exists()
 
 
 class NixChannel(TimeStampMixin):
@@ -176,33 +193,28 @@ class NixChannel(TimeStampMixin):
     head_sha1_commit = models.CharField(max_length=255)
     state = models.CharField(max_length=126, choices=ChannelState.choices)
 
+    @property
+    def primary(self) -> bool:
+        return get_major_channel(self.channel_branch) == self.channel_branch
+
     def __str__(self) -> str:
         return self.channel_branch
 
-    @property
-    def is_tracking_branch(self) -> bool:
-        """
-        Whether the channel corresponds to a the tracking branch.
-
-        It's the source of truth for metadata such as package descriptions and maintainer information.
-        """
-        return self.release_branch.name == settings.TRACKING_BRANCH
-
 
 class NixEvaluationQuerySet(models.QuerySet):
-    def latest_per_channel(self) -> "NixEvaluationQuerySet":
+    def latest_per_branch(self) -> "NixEvaluationQuerySet":
         return self.annotate(
             row_num=Window(
                 expression=RowNumber(),
-                partition_by=[F("channel")],
+                partition_by=[F("branch")],
                 order_by=F("updated_at").desc(),
             ),
         ).filter(row_num=1)
 
-    def latest_completed_per_channel(self) -> "NixEvaluationQuerySet":
+    def latest_completed_per_branch(self) -> "NixEvaluationQuerySet":
         return self.filter(
             state=NixEvaluation.EvaluationState.COMPLETED
-        ).latest_per_channel()
+        ).latest_per_branch()
 
 
 class NixEvaluation(TimeStampMixin):
@@ -234,9 +246,9 @@ class NixEvaluation(TimeStampMixin):
         # Failed means critical evaluation errors
         FAILED = "FAILED", _("Failed")
 
-    # Parent channel of that evaluation.
-    channel = models.ForeignKey(
-        NixChannel, related_name="evaluations", on_delete=models.PROTECT
+    # Source branch on which the evaluation was performed.
+    branch = models.ForeignKey(
+        NixpkgsBranch, related_name="evaluations", on_delete=models.PROTECT
     )
     # Commit SHA1 on which the evaluation was done precisely.
     commit_sha1 = models.CharField(max_length=255)
@@ -251,14 +263,10 @@ class NixEvaluation(TimeStampMixin):
     elapsed = models.FloatField(null=True)
 
     def __str__(self) -> str:
-        return f"{self.channel} {self.commit_sha1[:8]}"
+        return f"{self.branch} {self.commit_sha1[:8]}"
 
     class Meta:  # type: ignore[override]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["commit_sha1"], name="nixevaluation_commit_sha1_unique"
-            )
-        ]
+        unique_together = ("branch", "commit_sha1")
 
 
 class NixDerivation(models.Model):

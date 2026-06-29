@@ -10,7 +10,7 @@ from shared.release_channels import Channel, channels
 
 
 class Command(BaseCommand):
-    help = "Register Nix channels"
+    help = "Fetch current Nixpkgs channel tips and update source branches"
 
     def handle(self, *args: Any, **kwargs: Any) -> str | None:
         client = default_client()
