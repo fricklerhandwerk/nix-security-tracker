@@ -138,10 +138,7 @@ def make_branch(db: None) -> Callable[..., NixpkgsBranch]:
     def wrapped(name: str = settings.TRACKING_BRANCH) -> NixpkgsBranch:
         branch, _ = NixpkgsBranch.objects.get_or_create(
             name=name,
-            defaults={
-                "repository": str(settings.GIT_CLONE_URL),
-                "head_sha1_commit": secrets.token_hex(20),
-            },
+            defaults={"head_sha1_commit": secrets.token_hex(20)},
         )
         return branch
 

@@ -15,6 +15,27 @@ let
       diskSize = 4096;
     };
   };
+  dummy-nixpkgs =
+    pkgs.runCommand "dummy-nixpkgs"
+      {
+        nativeBuildInputs = [ pkgs.git ];
+      }
+      ''
+        mkdir -p $out/pkgs/top-level
+
+        cat > $out/pkgs/top-level/release.nix << EOF
+        { ... }:
+        {
+          hello.x86_64-linux = (import ${pkgs.path} {}).hello;
+        }
+        EOF
+
+        cd $out
+        git init --initial-branch=master
+        git add -A
+        git -c user.name=test -c user.email=test@test commit -m "test"
+        git rev-parse HEAD > REVISION
+      '';
   hydra = {
     port = toString 8080;
     mock = pkgs.writeText "hydra-mock" ''
@@ -26,7 +47,7 @@ let
               self.end_headers()
               self.wfile.write(b'${
                 builtins.toJSON {
-                  inputs.nixpkgs.value = "https://github.com/NixOS/nixpkgs.git";
+                  inputs.nixpkgs.value = "file://${dummy-nixpkgs}";
                 }
               }')
           log_message = lambda *_: None
@@ -41,27 +62,6 @@ pkgs.testers.runNixOSTest {
     { config, ... }:
     let
       cfg = config.services.${application};
-      dummy-nixpkgs =
-        pkgs.runCommand "dummy-nixpkgs"
-          {
-            nativeBuildInputs = [ pkgs.git ];
-          }
-          ''
-            mkdir -p $out/pkgs/top-level
-
-            cat > $out/pkgs/top-level/release.nix << EOF
-            { ... }:
-            {
-              hello.x86_64-linux = (import ${pkgs.path} {}).hello;
-            }
-            EOF
-
-            cd $out
-            git init --initial-branch=master
-            git add -A
-            git -c user.name=test -c user.email=test@test commit -m "test"
-            git rev-parse HEAD > REVISION
-          '';
     in
     {
       imports = [ module ];

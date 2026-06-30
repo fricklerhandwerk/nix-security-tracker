@@ -128,8 +128,11 @@ class NixDerivationMeta(models.Model):
 
 
 class NixpkgsBranch(models.Model):
+    """
+    A Nixpkgs branch that gets evaluated, e.g. `master` or `release-26.05`.
+    """
+
     name = models.CharField(max_length=126, primary_key=True)
-    repository = models.CharField(max_length=255)
     head_sha1_commit = models.CharField(max_length=126)
 
     def __str__(self) -> str:
@@ -153,6 +156,11 @@ class NixChannel(TimeStampMixin):
         STABLE = "stable", _("Stable")
         UNSTABLE = "rolling", _("Unstable")
 
+    class Variant(models.TextChoices):
+        PRIMARY = "primary", _("primary")
+        SMALL = "small", _("small")
+        DARWIN = "darwin", _("darwin")
+
     # States we care about for evaluation and prospective matching, as those are considered to be maintained.
     # Mutable per channel over time.
     TRACKED_STATES = (
@@ -175,6 +183,7 @@ class NixChannel(TimeStampMixin):
     # The currently known HEAD SHA1 commit of that channel.
     head_sha1_commit = models.CharField(max_length=255)
     state = models.CharField(max_length=126, choices=ChannelState.choices)
+    variant = models.CharField(max_length=126, choices=Variant.choices, null=True)
 
     def __str__(self) -> str:
         return self.channel_branch

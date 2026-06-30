@@ -92,7 +92,7 @@ class Settings(BaseSettings):
             description="""
             URL from which to clone the Nix expressions encoding the software distribution.
             """,
-            default=HttpUrl("https://github.com/NixOS/nixpkgs"),
+            default=AnyUrl("https://github.com/NixOS/nixpkgs.git"),
         )
         LOCAL_NIXPKGS_CHECKOUT: DirectoryPath = Field(
             description="""
@@ -105,6 +105,12 @@ class Settings(BaseSettings):
             Base URL of the Hydra instance used to look up jobset inputs for branch resolution.
             """,
             default=HttpUrl("https://hydra.nixos.org"),
+        )
+        HYDRA_INPUT_NAME: str = Field(
+            description="""
+            Name of the Hydra jobset input that refers to the source we're tracking.
+            """,
+            default="nixpkgs",
         )
         NETWORK_REQUEST_TIMEOUT: int = Field(
             description="""

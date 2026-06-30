@@ -2,16 +2,27 @@ import django.db.models.deletion
 from django.db import migrations, models
 
 
+def populate_variant(apps, schema_editor):
+    NixChannel = apps.get_model("shared", "NixChannel")
+    for channel in NixChannel.objects.all():
+        if channel.channel_branch.endswith("-small"):
+            channel.variant = "small"
+        elif channel.channel_branch.endswith("-darwin"):
+            channel.variant = "darwin"
+        elif channel.channel_branch.startswith("nixos-"):
+            channel.variant = "primary"
+        else:
+            channel.variant = None
+        channel.save(update_fields=["variant"])
+
+
 def populate_release_branch(apps, schema_editor):
     NixChannel = apps.get_model("shared", "NixChannel")
     NixpkgsBranch = apps.get_model("shared", "NixpkgsBranch")
     for channel in NixChannel.objects.all():
         branch, _ = NixpkgsBranch.objects.get_or_create(
             name=channel.release_branch_name,
-            defaults={
-                "repository": channel.repository,
-                "head_sha1_commit": channel.head_sha1_commit,
-            },
+            defaults={"head_sha1_commit": channel.head_sha1_commit},
         )
         channel.release_branch = branch
         channel.save(update_fields=["release_branch"])
@@ -31,7 +42,6 @@ class Migration(migrations.Migration):
                     "name",
                     models.CharField(max_length=126, primary_key=True, serialize=False),
                 ),
-                ("repository", models.CharField(max_length=255)),
                 ("head_sha1_commit", models.CharField(max_length=126)),
             ],
         ),
@@ -70,5 +80,18 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name="nixchannel",
             name="repository",
+        ),
+        migrations.AddField(
+            model_name="nixchannel",
+            name="variant",
+            field=models.CharField(
+                choices=[("primary", "primary"), ("small", "small"), ("darwin", "darwin")],
+                max_length=126,
+                null=True,
+            ),
+        ),
+        migrations.RunPython(
+            code=populate_variant,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]
