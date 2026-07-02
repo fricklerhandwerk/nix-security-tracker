@@ -31,7 +31,7 @@ def populate_release_branch(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("shared", "0095_max_matches_exceeded_rejection"),
+        ("shared", "0096_alter_cvederivationclusterproposal_rejection_reason_and_more"),
     ]
 
     operations = [

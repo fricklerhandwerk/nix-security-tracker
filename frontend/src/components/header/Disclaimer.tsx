@@ -1,12 +1,17 @@
-import { getConfig } from "@/config";
-import styles from "./Disclaimer.module.css";
+import { useServerInfo } from "@/hooks/useServerInfo";
+
+const className = "box compact column centered bg-yellow-light";
 
 export function Disclaimer() {
-  const config = getConfig();
+  const serverInfo = useServerInfo();
 
-  if (config.debug) {
+  if (!serverInfo) {
+    return null;
+  }
+
+  if (serverInfo.debug) {
     return (
-      <div className={styles.banner}>
+      <div className={className}>
         <em>
           ⚠️ You are using a <strong>publicly accessible</strong> testing environment. Don't enter
           secrets into this system, especially not by reusing passwords for your user account.
@@ -15,9 +20,9 @@ export function Disclaimer() {
     );
   }
 
-  if (config.showDemoDisclaimer) {
+  if (serverInfo.show_demo_disclaimer) {
     return (
-      <div className={styles.banner}>
+      <div className={className}>
         <em>
           ⚠️ You are using a production deployment that is{" "}
           <strong>still only suitable for demo purposes.</strong> Any work done in this might be
