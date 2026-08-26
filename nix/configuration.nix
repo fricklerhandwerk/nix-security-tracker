@@ -391,6 +391,7 @@ in
             };
             script = ''
               wst-manage backfill_package_clustering
+              wst-manage rematch_stale_suggestions
               wst-manage regenerate_cached_suggestions
             '';
           };
