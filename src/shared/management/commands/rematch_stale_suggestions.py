@@ -8,9 +8,7 @@ from shared.models.linkage import CVEDerivationClusterProposal
 
 
 class Command(BaseCommand):
-    help = (
-        "Dispatch a re-match of untriaged suggestions when there's a newer matching algorithm."
-    )
+    help = "Dispatch a re-match of untriaged suggestions when there's a newer matching algorithm."
 
     def handle(self, *args: Any, **options: Any) -> None:
         stale_pks = CVEDerivationClusterProposal.objects.filter(
