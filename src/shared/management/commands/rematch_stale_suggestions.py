@@ -9,9 +9,7 @@ from shared.models.linkage import CVEDerivationClusterProposal
 
 class Command(BaseCommand):
     help = (
-        "Dispatch a re-match of PENDING/ACCEPTED suggestions still on an "
-        "outdated algorithm_version, e.g. after a change to the matching "
-        "algorithm."
+        "Dispatch a re-match of untriaged suggestions when there's a newer matching algorithm."
     )
 
     def handle(self, *args: Any, **options: Any) -> None:
