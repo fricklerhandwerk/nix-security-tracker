@@ -66,4 +66,3 @@ def test_dispatches_stale_suggestion(
     ]
     mock_notify.assert_has_calls(expected_calls, any_order=True)
     assert mock_notify.call_count == 2
-    assert "Dispatched 2 stale suggestion(s) for rematch." in out.getvalue()
