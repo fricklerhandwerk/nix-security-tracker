@@ -15,24 +15,23 @@ class Command(BaseCommand):
     )
 
     def handle(self, *args: Any, **options: Any) -> None:
-        stale_pks = (
-            CVEDerivationClusterProposal.objects.filter(
-                status__in=[
-                    CVEDerivationClusterProposal.Status.PENDING,
-                    CVEDerivationClusterProposal.Status.ACCEPTED,
-                ],
-                algorithm_version__lt=CVEDerivationClusterProposal.CURRENT_ALGORITHM_VERSION
-            )
-            .values_list("pk", flat=True)
-        )
+        stale_pks = CVEDerivationClusterProposal.objects.filter(
+            status__in=[
+                CVEDerivationClusterProposal.Status.PENDING,
+                CVEDerivationClusterProposal.Status.ACCEPTED,
+            ],
+            algorithm_version__lt=CVEDerivationClusterProposal.CURRENT_ALGORITHM_VERSION,
+        ).values_list("pk", flat=True)
 
         if not stale_pks:
             self.stdout.write("No stale suggestions; nothing to do.")
             return
 
         for pk in stale_pks.iterator():
-            pgpubsub.notify(SuggestionRefreshChannel, pk=pk)            
+            pgpubsub.notify(SuggestionRefreshChannel, pk=pk)
 
         self.stdout.write(
-            self.style.SUCCESS(f"Dispatched {stale_pks.count()} stale suggestion(s) for rematch.")
+            self.style.SUCCESS(
+                f"Dispatched {stale_pks.count()} stale suggestion(s) for rematch."
+            )
         )
