@@ -51,9 +51,9 @@
       },
       "branch": "main",
       "submodules": false,
-      "revision": "5735e3530ba246167b5129d9d4a1022707dd40a5",
-      "url": "https://github.com/nixos/infra/archive/5735e3530ba246167b5129d9d4a1022707dd40a5.tar.gz",
-      "hash": "sha256-os3Wqx2mxc3ykhG4kwBXcqZEZ25bckenprrm6/JGh5U="
+      "revision": "979b33669314720aacceeb1e9a50b41ecdebfcc8",
+      "url": "https://github.com/nixos/infra/archive/979b33669314720aacceeb1e9a50b41ecdebfcc8.tar.gz",
+      "hash": "sha256-l4i8SmlNuzr50ScEmyhTt4txaljvbk5z4wge7Hck/Mk="
     },
     "nixos-logo": {
       "type": "Url",
@@ -65,8 +65,8 @@
       "type": "Channel",
       "name": "nixpkgs-unstable",
       "artifact": "nixexprs.tar.xz",
-      "url": "https://releases.nixos.org/nixpkgs/nixpkgs-26.11pre1017567.3e41b24abd26/nixexprs.tar.xz",
-      "hash": "sha256-eM+l4TVD26SNoEjcxRcpispqZi5Qrqj/G0ZY4LfqwfM="
+      "url": "https://releases.nixos.org/nixpkgs/nixpkgs-26.11pre1067424.17de0b976395/nixexprs.tar.xz",
+      "hash": "sha256-STqRCiZb+updgn0k5fxafPeVapQKByLEekSAU67A0QQ="
     },
     "pre-commit-hooks": {
       "type": "Git",
@@ -77,9 +77,9 @@
       },
       "branch": "master",
       "submodules": false,
-      "revision": "3bbec39bc90eadfa031e6f3b77272f3f60803e39",
-      "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/3bbec39bc90eadfa031e6f3b77272f3f60803e39.tar.gz",
-      "hash": "sha256-U3yTuGBnmXvXoQI3qkpfEDsn9RovQPAjN7ndRco+3u0="
+      "revision": "27555e2624241fb116b49095df4caaee85a25691",
+      "url": "https://github.com/cachix/pre-commit-hooks.nix/archive/27555e2624241fb116b49095df4caaee85a25691.tar.gz",
+      "hash": "sha256-nt+lUqYVpc9Y6JeMd2WmXzCDojasdadKo0mWcluvY2Y="
     }
   },
   "version": 8
