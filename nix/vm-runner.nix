@@ -3,6 +3,7 @@
   writeShellApplication,
   nixos,
   nixos-module,
+  pkgs,
 }:
 let
   runner-module =
@@ -42,6 +43,9 @@ let
       };
 
       config = {
+        nixpkgs.hostPlatform = "x86_64-linux";
+        virtualisation.host.pkgs = pkgs;
+
         virtualisation.forwardPorts = lib.mapAttrsToList (_: port: {
           from = "host";
           host.port = port + config.local.port-offset;
