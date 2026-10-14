@@ -70,16 +70,19 @@ in
 
     nativeCheckInputs = with final.python3.pkgs; [
       freezegun
+      graphql-core
       pytest
       pytest-django
       pytest-playwright
       pytest-mock
       pytest-socket
+      responses
     ];
 
     passthru = {
       inherit nativeCheckInputs;
       PLAYWRIGHT_BROWSERS_PATH = final.playwright-driver.browsers;
+      GH_GRAPHQL_SCHEMA = "${sources.github-graphql-schema}";
       pythonEnv = final.python3.withPackages (_: propagatedBuildInputs ++ nativeCheckInputs);
     };
 

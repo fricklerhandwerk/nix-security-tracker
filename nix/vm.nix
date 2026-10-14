@@ -205,7 +205,7 @@ in
       manage = "${shared.src.target}/manage.py";
       env = {
         PYTHONPATH = shared.src.target;
-        inherit (pkgs.nix-security-tracker.passthru) PLAYWRIGHT_BROWSERS_PATH;
+        inherit (pkgs.nix-security-tracker.passthru) PLAYWRIGHT_BROWSERS_PATH GH_GRAPHQL_SCHEMA;
       };
       extra-python-packages = pkgs.nix-security-tracker.passthru.nativeCheckInputs;
       secrets = lib.mapAttrs (name: _: "${shared.credentials.target}/${name}") (

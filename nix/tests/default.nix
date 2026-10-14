@@ -79,7 +79,7 @@ pkgs.testers.runNixOSTest {
           BASE_URL = "https://example.org";
         };
         env = {
-          inherit (cfg.package.passthru) PLAYWRIGHT_BROWSERS_PATH;
+          inherit (cfg.package.passthru) PLAYWRIGHT_BROWSERS_PATH GH_GRAPHQL_SCHEMA;
         };
         manage-prefix = "test-";
         secrets =
